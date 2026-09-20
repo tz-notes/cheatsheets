@@ -1,0 +1,64 @@
+name: Update table of contents
+
+# Regenerates the table of contents in every tracked Markdown file that opts in
+# (a file opts in by containing the doctoc START marker; see
+# .github/scripts/update-toc.sh) and commits the result back to the branch.
+# If GitHub Pages is enabled, it then asks Pages to rebuild the site.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "*.md"
+      - "**/*.md"
+      - ".github/scripts/**"
+      - ".github/workflows/update-toc.yml"
+  workflow_dispatch:
+    inputs:
+      max_level:
+        description: "Deepest heading level to list (1-6). Empty = repo variable TOC_MAX_LEVEL, else the script default."
+        required: false
+        type: string
+
+# Deny everything by default; the job below requests only what it needs.
+permissions: {}
+
+concurrency:
+  group: update-toc-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  # Precedence: manual-run input > repository variable TOC_MAX_LEVEL > script default.
+  # An empty value falls through to the default defined in update-toc.sh.
+  TOC_MAX_LEVEL: ${{ inputs.max_level || vars.TOC_MAX_LEVEL }}
+
+jobs:
+  update-toc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write # push the regenerated files back to the branch
+      pages: write    # ask Pages to rebuild after the bot commit (see request-pages-build.sh)
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+
+      - name: Regenerate tables of contents
+        run: bash .github/scripts/update-toc.sh
+
+      - name: Commit changes, if any
+        id: commit
+        run: |
+          bash .github/scripts/commit-if-changed.sh "docs: update table of contents"
+
+      # Commits pushed with the GITHUB_TOKEN do not trigger a Pages build by themselves.
+      - name: Request a Pages rebuild
+        if: steps.commit.outputs.committed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash .github/scripts/request-pages-build.sh

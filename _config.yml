@@ -1,0 +1,7 @@
+# Jekyll config for the GitHub Pages site.
+# These plugins are already on by default in GitHub Pages and need no setup:
+# jekyll-relative-links, jekyll-optional-front-matter, jekyll-readme-index,
+# jekyll-default-layout, jekyll-titles-from-headings.
+title: Cheatsheets
+description: Quick, copy-paste runbooks
+theme: jekyll-theme-primer

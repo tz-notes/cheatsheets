@@ -1,0 +1,27 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*~
+
+# Node (update-toc.sh runs doctoc through npx)
+node_modules/
+npm-debug.log*
+
+# Jekyll / GitHub Pages local builds
+_site/
+.jekyll-cache/
+.sass-cache/
+Gemfile.lock
+.bundle/
+vendor/
+
+# Local environment and scratch files
+.env
+.env.*
+*.log
+*.tmp
